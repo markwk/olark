@@ -16,4 +16,17 @@ Drupal.behaviors.olark = function() {
       });
     }); 
   }
+
+  // Hides Olark box if agent is iPod, iPad, iPhone.
+  if(Drupal.settings.olark.disable_ios && Drupal.settings.olark.enabled){
+    olark('api.box.onShow',checkIOS);
+  }
+}
+
+function checkIOS() {
+  var agent = navigator.userAgent.toLowerCase();
+  var isIOS = (agent.match(/iP(hone|ad)/i) !== null);
+  if (isIOS) {
+    olark('api.box.hide');
+  }
 }

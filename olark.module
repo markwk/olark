@@ -97,6 +97,12 @@ function olark_settings() {
     '#description' => t('Paste the Javascript code block from <a href="http://olark.com/install">Olark.com</a>'),
     '#default_value' => variable_get('olark_code', ''),
   );
+  $form['olark_ios'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Disable in iOS devices'),
+    '#description' => t('Hides it on iPhone, iPad and iPod since it has issues in this plataforms.'),
+    '#default_value' => variable_get('olark_ios', ''),
+  );
   if (module_exists('context')) {
     $form['olark_context'] = array(
       '#type' => 'checkbox',
@@ -133,6 +139,8 @@ function olark_add_js() {
       $setting['olark']['loggedinas'] = t('logged in as !link', array('!link' => l($user->name, 'user/' . $user->uid, array('absolute' => TRUE))));
     }
     
+    $setting['olark']['disable_ios'] = variable_get('olark_ios', '');
+    $setting['olark']['enabled'] = variable_get('olark_enable', 1);
     drupal_add_js($setting, 'setting');
       
     $added = TRUE;
