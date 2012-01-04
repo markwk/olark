@@ -3,7 +3,8 @@ $Id:
 Olark
 
 The Olark module for Drupal  
-by Jeff Robbins / Lullabot  
+by Jeff Robbins / Lullabot
+Drupal 7 port by Ilari Mäkelä / Mearra
 ***************************
 
 The Olark module provides some simple integration between the Olark live chat 

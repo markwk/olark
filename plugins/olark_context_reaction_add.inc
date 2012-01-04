@@ -10,7 +10,7 @@
  * Add Olark code to the page.
  */
 class olark_context_reaction_add extends context_reaction {
-  
+
   function options_form($context) {
     return array(
       'add' => array('#type' => 'value', '#value' => TRUE),
@@ -21,7 +21,7 @@ class olark_context_reaction_add extends context_reaction {
   function options_form_submit($values) {
     return array('add' => 1);
   }
-  
+
   function execute() {
     $contexts = $this->get_contexts();
     foreach ($contexts as $context) {

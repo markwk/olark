@@ -2,4 +2,7 @@
 
 name = Olark Chat
 description = Olark chat integration.
-core = 6.x
+core = 7.x
+version = "7.x-1.0"
+project = "olark"
+files[] = plugins/olark_context_reaction_add.inc

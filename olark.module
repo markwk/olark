@@ -12,11 +12,11 @@
 function olark_menu() {
   $items = array();
 
-  $items['admin/settings/olark'] = array(
+  $items['admin/config/olark'] = array(
     'title' => 'Olark settings',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('olark_settings'),
-    'access arguments' => array('administer site configuration') 
+    'access arguments' => array('administer site configuration')
   );
 
   return $items;
@@ -25,20 +25,20 @@ function olark_menu() {
 /**
  * Implements hook_footer().
  */
-function olark_footer() {
+function olark_page_alter(&$page) {
   // Note that the 'olark_enable' variable can be (un)set in
   // the $conf array in settings.php, or by another module to enable/disable
   // however, there is not a user interface for this variable.
   if (variable_get('olark_enable', 1)) {
     if (!variable_get('olark_context', 0)) {
       olark_add_js();
-      return variable_get('olark_code', '');
+      $page['page_bottom']['tns']['#markup'] = variable_get('olark_code', '');
     }
     else {
       if ($plugin = context_get_plugin('reaction', 'olark_add')) {
         if ($plugin->execute()) {
           olark_add_js();
-          return variable_get('olark_code', '');
+          $page['page_bottom']['tns']['#markup'] = variable_get('olark_code', '');
         }
       }
     }
@@ -89,7 +89,7 @@ function olark_context_plugins() {
 /**
  * Settings form.
  */
-function olark_settings() {
+function olark_settings($form, &$form_state) {
   $form = array();
   $form['olark_code'] = array(
     '#type' => 'textarea',
@@ -107,7 +107,7 @@ function olark_settings() {
     $form['olark_context'] = array(
       '#type' => 'checkbox',
       '#title' => t('Use Context to choose when Olark is added to the page.'),
-      '#description' => t('The Olark code will be included on all pages of your site by default. You can use <a href="!context_url">Context module</a> to fine tune when and where it will be displayed.', array('!context_url' => url('admin/build/context'))),
+      '#description' => t('The Olark code will be included on all pages of your site by default. You can use <a href="!context_url">Context module</a> to fine tune when and where it will be displayed.', array('!context_url' => url('admin/structure/context'))),
       '#default_value' => variable_get('olark_context', 0),
     );
   }
@@ -121,12 +121,12 @@ function olark_add_js() {
   static $added;
   if (!isset($added)) {
     global $user;
-    
-    $path = drupal_get_path('module', 'olark');  
+
+    $path = drupal_get_path('module', 'olark');
     drupal_add_js($path . '/olark.js');
-    
+
     $setting = array('olark' => array());
-    
+
     // If the user is logged in, let's get some pertinent information and
     // pass it along as well.
     if ($user->uid) {
@@ -138,11 +138,11 @@ function olark_add_js() {
       $setting['olark']['userpage'] = url('user/' . $user->uid, array('absolute' => TRUE));
       $setting['olark']['loggedinas'] = t('logged in as !link', array('!link' => l($user->name, 'user/' . $user->uid, array('absolute' => TRUE))));
     }
-    
+
     $setting['olark']['disable_ios'] = variable_get('olark_ios', '');
     $setting['olark']['enabled'] = variable_get('olark_enable', 1);
-    drupal_add_js($setting, 'setting');
-      
+    drupal_add_js($setting, array('type' => 'setting', 'scope' => JS_DEFAULT));
+
     $added = TRUE;
   }
 }

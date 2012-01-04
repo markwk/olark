@@ -1,0 +1,153 @@
+diff --git a/README.txt b/README.txt
+old mode 100755
+new mode 100644
+index 05ec8f2..20c25f2
+--- a/README.txt
++++ b/README.txt
+@@ -3,7 +3,8 @@ $Id:
+ Olark
+ 
+ The Olark module for Drupal  
+-by Jeff Robbins / Lullabot  
++by Jeff Robbins / Lullabot
++Drupal 7 port by Ilari Mäkelä / Mearra
+ ***************************
+ 
+ The Olark module provides some simple integration between the Olark live chat 
+diff --git a/olark.info b/olark.info
+old mode 100755
+new mode 100644
+index a481fa4..0e78af8
+--- a/olark.info
++++ b/olark.info
+@@ -2,4 +2,7 @@
+ 
+ name = Olark Chat
+ description = Olark chat integration.
+-core = 6.x
++core = 7.x
++version = "7.x-1.0"
++project = "olark"
++files[] = plugins/olark_context_reaction_add.inc
+\ No newline at end of file
+diff --git a/olark.js b/olark.js
+old mode 100755
+new mode 100644
+diff --git a/olark.module b/olark.module
+old mode 100755
+new mode 100644
+index bb1f91a..e38650c
+--- a/olark.module
++++ b/olark.module
+@@ -12,11 +12,11 @@
+ function olark_menu() {
+   $items = array();
+ 
+-  $items['admin/settings/olark'] = array(
++  $items['admin/config/olark'] = array(
+     'title' => 'Olark settings',
+     'page callback' => 'drupal_get_form',
+     'page arguments' => array('olark_settings'),
+-    'access arguments' => array('administer site configuration') 
++    'access arguments' => array('administer site configuration')
+   );
+ 
+   return $items;
+@@ -25,20 +25,20 @@ function olark_menu() {
+ /**
+  * Implements hook_footer().
+  */
+-function olark_footer() {
++function olark_page_alter(&$page) {
+   // Note that the 'olark_enable' variable can be (un)set in
+   // the $conf array in settings.php, or by another module to enable/disable
+   // however, there is not a user interface for this variable.
+   if (variable_get('olark_enable', 1)) {
+     if (!variable_get('olark_context', 0)) {
+       olark_add_js();
+-      return variable_get('olark_code', '');
++      $page['page_bottom']['tns']['#markup'] = variable_get('olark_code', '');
+     }
+     else {
+       if ($plugin = context_get_plugin('reaction', 'olark_add')) {
+         if ($plugin->execute()) {
+           olark_add_js();
+-          return variable_get('olark_code', '');
++          $page['page_bottom']['tns']['#markup'] = variable_get('olark_code', '');
+         }
+       }
+     }
+@@ -89,7 +89,7 @@ function olark_context_plugins() {
+ /**
+  * Settings form.
+  */
+-function olark_settings() {
++function olark_settings($form, &$form_state) {
+   $form = array();
+   $form['olark_code'] = array(
+     '#type' => 'textarea',
+@@ -107,7 +107,7 @@ function olark_settings() {
+     $form['olark_context'] = array(
+       '#type' => 'checkbox',
+       '#title' => t('Use Context to choose when Olark is added to the page.'),
+-      '#description' => t('The Olark code will be included on all pages of your site by default. You can use <a href="!context_url">Context module</a> to fine tune when and where it will be displayed.', array('!context_url' => url('admin/build/context'))),
++      '#description' => t('The Olark code will be included on all pages of your site by default. You can use <a href="!context_url">Context module</a> to fine tune when and where it will be displayed.', array('!context_url' => url('admin/structure/context'))),
+       '#default_value' => variable_get('olark_context', 0),
+     );
+   }
+@@ -121,12 +121,12 @@ function olark_add_js() {
+   static $added;
+   if (!isset($added)) {
+     global $user;
+-    
+-    $path = drupal_get_path('module', 'olark');  
++
++    $path = drupal_get_path('module', 'olark');
+     drupal_add_js($path . '/olark.js');
+-    
++
+     $setting = array('olark' => array());
+-    
++
+     // If the user is logged in, let's get some pertinent information and
+     // pass it along as well.
+     if ($user->uid) {
+@@ -138,11 +138,11 @@ function olark_add_js() {
+       $setting['olark']['userpage'] = url('user/' . $user->uid, array('absolute' => TRUE));
+       $setting['olark']['loggedinas'] = t('logged in as !link', array('!link' => l($user->name, 'user/' . $user->uid, array('absolute' => TRUE))));
+     }
+-    
++
+     $setting['olark']['disable_ios'] = variable_get('olark_ios', '');
+     $setting['olark']['enabled'] = variable_get('olark_enable', 1);
+-    drupal_add_js($setting, 'setting');
+-      
++    drupal_add_js($setting, array('type' => 'setting', 'scope' => JS_DEFAULT));
++
+     $added = TRUE;
+   }
+ }
+diff --git a/plugins/olark_context_reaction_add.inc b/plugins/olark_context_reaction_add.inc
+old mode 100755
+new mode 100644
+index cdf8459..29e26f0
+--- a/plugins/olark_context_reaction_add.inc
++++ b/plugins/olark_context_reaction_add.inc
+@@ -10,7 +10,7 @@
+  * Add Olark code to the page.
+  */
+ class olark_context_reaction_add extends context_reaction {
+-  
++
+   function options_form($context) {
+     return array(
+       'add' => array('#type' => 'value', '#value' => TRUE),
+@@ -21,7 +21,7 @@ class olark_context_reaction_add extends context_reaction {
+   function options_form_submit($values) {
+     return array('add' => 1);
+   }
+-  
++
+   function execute() {
+     $contexts = $this->get_contexts();
+     foreach ($contexts as $context) {
